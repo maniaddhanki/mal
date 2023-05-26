@@ -1,8 +1,11 @@
+const { malValue, Malval } = require('./types.js');
+
 const pr_str = malValue => {
-  if (Array.isArray(malValue)) {
-    return "(" + malValue.map(pr_str).join(" ") + ")";
+  if (malValue instanceof Malval) {
+    return malValue.pr_str();
   }
 
   return malValue.toString();
 };
-exports.pr_str = pr_str;
+
+module.exports = { pr_str };
