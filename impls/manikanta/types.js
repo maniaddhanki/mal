@@ -19,6 +19,10 @@ class MalList extends Malval {
     super(value);
   }
 
+  isEmpty() {
+    return this.value.length === 0;
+  }
+
   pr_str() {
     return '(' + this.value.map(x => x.pr_str()).join(' ') + ')';
   }

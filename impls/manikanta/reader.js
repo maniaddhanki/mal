@@ -49,7 +49,7 @@ const read_vector = reader => {
 const read_atom = reader => {
   const token = reader.next();
   if (token.match(/^-?[0-9]+$/)) {
-    return new Malval(parseInt(token));
+    return parseInt(token);
   }
 
   if (token === 'true') {
