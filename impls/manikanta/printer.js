@@ -5,7 +5,6 @@ const pr_str = malValue => {
     return malValue.pr_str();
   }
 
-  console.log(malValue);
   return malValue.toString();
 };
 

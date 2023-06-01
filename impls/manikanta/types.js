@@ -23,6 +23,10 @@ class MalList extends Malval {
     return this.value.length === 0;
   }
 
+  count() {
+    return this.value.length;
+  }
+
   pr_str() {
     return '(' + this.value.map(x => x.pr_str()).join(' ') + ')';
   }
@@ -33,6 +37,14 @@ class MalVector extends Malval {
     super(value);
   }
 
+  isEmpty() {
+    return this.value.length === 0;
+  }
+
+  count() {
+    return this.value.length;
+  }
+
   pr_str() {
     return '[' + this.value.map(x => x.pr_str()).join(' ') + ']';
   }
@@ -41,6 +53,10 @@ class MalVector extends Malval {
 class Malnil extends Malval {
   constructor() {
     super('nil');
+  }
+
+  count() {
+    return 0;
   }
 
   pr_str() {
