@@ -1,5 +1,6 @@
 const { deepEqual } = require('./uitls.js');
 const { MalList, MalVector, Malnil, MalSymbol } = require('./types.js');
+const { pr_str } = require('./printer.js');
 
 
 const ns = {
@@ -23,10 +24,13 @@ const ns = {
   'list?': (...args) => args[0] instanceof MalList,
   'empty?': (...args) => args[0].isEmpty(),
   'count': (...args) => args[0].count(),
+
   'prn': (...args) => {
-    console.log(args[0]);
+    console.log(args.map(element => pr_str(element)).join(' '));
     return new Malnil();
-  }
+  },
+
+  'str': (...args) => args.map(element => pr_str(element)).join(' ')
 }
 
 module.exports = { ns };

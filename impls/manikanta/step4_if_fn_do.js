@@ -1,7 +1,7 @@
 const readline = require("readline");
 const { read_str } = require("./reader.js");
 const { pr_str } = require("./printer.js");
-const { MalSymbol, MalList, Malval, MalVector, Malnil } = require("./types.js");
+const { MalSymbol, MalList, Malval, MalVector, Malnil, MalString } = require("./types.js");
 const { Env } = require("./env.js");
 const { ns } = require('./core.js');
 
@@ -74,7 +74,8 @@ const letImplementation = (ast, env) => {
   for (let index = 0; index < bindingList.length; index += 2) {
     new_env.set(bindingList[index], EVAL(bindingList[index + 1], new_env));
   }
-  return EVAL(ast.value[2], new_env);
+  const new_ast = new MalList(ast.value.slice(2));
+  return doImplementation(new_ast, new_env);
 };
 
 const doImplementation = (ast, env) => {
@@ -139,6 +140,8 @@ for (key in ns) {
 }
 
 const rep = str => PRINT(EVAL(READ(str), env));
+
+const not = rep('(def! not (fn* (a) (if a false true)))');
 
 const repl = () =>
   rl.question('user> ', line => {

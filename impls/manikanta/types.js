@@ -64,4 +64,14 @@ class Malnil extends Malval {
   }
 }
 
-module.exports = { Malval, MalSymbol, MalList, MalVector, Malnil };
+class MalString extends Malval {
+  constructor(value) {
+    super(value);
+  }
+
+  pr_str() {
+    return this.value;
+  }
+}
+
+module.exports = { Malval, MalSymbol, MalList, MalVector, Malnil, MalString };

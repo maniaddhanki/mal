@@ -64,6 +64,10 @@ const read_atom = reader => {
     return new Malnil();
   }
 
+  if (token[0] === '"') {
+    return new MalSymbol(token);
+  }
+
   return new MalSymbol(token);
 };
 
