@@ -1,13 +1,21 @@
 class Env {
-  constructor(outer) {
+  constructor(outer, binds = [], exprs = []) {
     this.outer = outer;
     this.data = {};
+    this.binds = binds;
+    this.exprs = exprs;
+    this.#init();
   }
 
-  add_symbols(binds, exprs) {
-    for (let index = 0; index < binds.length; index++) {
-      const symbol = binds[index].value;
-      this.data[symbol] = exprs[index];
+  #init() {
+    // this.binds.forEach((symbol, index) => {
+    //   const value = this.exprs[index];
+    //   this.set(symbol, value);
+    // });
+    for (let index = 0; index < this.binds.length; index++) {
+      const symbol = this.binds[index];
+      const value = this.exprs[index];
+      this.set(symbol, value);
     }
   }
 

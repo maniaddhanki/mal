@@ -1,7 +1,7 @@
 const readline = require("readline");
 const { read_str } = require("./reader.js");
 const { pr_str } = require("./printer.js");
-const { MalSymbol, MalList, Malval, MalVector, Malnil, MalString } = require("./types.js");
+const { MalSymbol, MalList, Malval, MalVector, Malnil, MalString, MalFunction } = require("./types.js");
 const { Env } = require("./env.js");
 const { ns } = require('./core.js');
 
@@ -74,8 +74,8 @@ const letImplementation = (ast, env) => {
   for (let index = 0; index < bindingList.length; index += 2) {
     new_env.set(bindingList[index], EVAL(bindingList[index + 1], new_env));
   }
-  const new_ast = new MalList(ast.value.slice(2));
-  return doImplementation(new_ast, new_env);
+  const new_ast = new MalList([new MalSymbol('do'), new MalList(ast.value.slice(2))]);
+  return [new_env, new_ast];
 };
 
 const doImplementation = (ast, env) => {
@@ -85,50 +85,64 @@ const doImplementation = (ast, env) => {
     EVAL(ast.value[index], env);
   }
 
-  return EVAL(ast.value[elementCount], env);
+  return ast.value[elementCount];
 };
 
 const ifImplementation = (ast, env) => {
   const predicate = EVAL(ast.value[1], env);
-  const eval_index = isTrue(predicate) ? 2 : 3;
-  return EVAL(ast.value[eval_index], env) || new Malnil();
+  const else_block = ast.value[3] || new Malnil();
+  return isTrue(predicate) ? ast.value[2] : else_block;
 };
 
 const fnImplementation = (ast, env) => {
-  const vars = ast.value[1].value;
+  const [bindings, ...body] = ast.value.slice(1);
+  const fnBody = new MalList([new MalSymbol('do'), ...body]);
+  return new MalFunction(fnBody, bindings, env);
 
-  const fn_cljr = (...args) => {
-    if (vars.length !== args.length) {
-      throw 'Wrong number of arguments';
-    }
-    const fn_env = new Env(env, vars, args);
-
-    return EVAL(ast.value[2], fn_env);
-  };
-
-  fn_cljr.toString = () => "#<function>";
-  return fn_cljr;
 };
 
 const EVAL = (ast, env) => {
-  if (!(ast instanceof MalList)) {
-    return eval_ast(ast, env);
-  }
+  while (true) {
+    if (!(ast instanceof MalList)) {
+      return eval_ast(ast, env);
+    }
 
-  if (ast.isEmpty()) {
-    return ast;
-  }
+    if (ast.isEmpty()) {
+      return ast;
+    }
 
-  switch (ast.value[0].value) {
-    case 'def!': return defImplementation(ast, env);
-    case 'let*': return letImplementation(ast, env);
-    case 'do': return doImplementation(ast, env);
-    case 'if': return ifImplementation(ast, env);
-    case 'fn*': return fnImplementation(ast, env);
-  }
+    switch (ast.value[0].value) {
+      case 'def!':
+        return defImplementation(ast, env);
+        break;
 
-  const [fn, ...args] = eval_ast(ast, env).value;
-  return fn.apply(null, args);
+      case 'let*':
+        [env, ast] = letImplementation(ast, env);
+        break;
+
+      case 'do':
+        ast = doImplementation(ast, env);
+        break;
+
+      case 'if':
+        ast = ifImplementation(ast, env);
+        break;
+
+      case 'fn*':
+        ast = fnImplementation(ast, env);
+        break;
+
+      default:
+        const [fn, ...args] = eval_ast(ast, env).value;
+
+        if (fn instanceof MalFunction) {
+          ast = fn.value;
+          env = new Env(fn.env, fn.binds.value, args);
+        } else {
+          return fn.apply(null, args);
+        }
+    }
+  }
 };
 
 const PRINT = malValue => pr_str(malValue);
