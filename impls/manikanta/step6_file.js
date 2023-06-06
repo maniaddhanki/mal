@@ -1,7 +1,7 @@
 const readline = require("readline");
 const { read_str } = require("./reader.js");
-const { pr_str } = require("./printer.js");
-const { MalSymbol, MalList, Malval, MalVector, Malnil, MalString, MalFunction } = require("./types.js");
+// const { pr_str } = require("./printer.js");
+const { MalSymbol, MalList, Malval, MalVector, Malnil, MalString, MalFunction, pr_str } = require("./types.js");
 const { Env } = require("./env.js");
 const { ns } = require('./core.js');
 
@@ -70,11 +70,12 @@ const defImplementation = (ast, env) => {
 const letImplementation = (ast, env) => {
   const new_env = new Env(env);
   const bindingList = ast.value[1].value;
+  const forms = ast.value.slice(2);
 
   for (let index = 0; index < bindingList.length; index += 2) {
     new_env.set(bindingList[index], EVAL(bindingList[index + 1], new_env));
   }
-  const new_ast = new MalList([new MalSymbol('do'), new MalList(ast.value.slice(2))]);
+  const new_ast = new MalList([new MalSymbol('do'), ...forms]);
   return [new_env, new_ast];
 };
 
@@ -97,8 +98,13 @@ const ifImplementation = (ast, env) => {
 const fnImplementation = (ast, env) => {
   const [bindings, ...body] = ast.value.slice(1);
   const fnBody = new MalList([new MalSymbol('do'), ...body]);
-  return new MalFunction(fnBody, bindings, env);
 
+  const fn_cljr = (...args) => {
+    const fnEnv = new Env(env, bindings.value, args);
+    return EVAL(fnBody, fnEnv);
+  };
+
+  return new MalFunction(fnBody, bindings, env, fn_cljr);
 };
 
 const EVAL = (ast, env) => {
@@ -145,16 +151,19 @@ const EVAL = (ast, env) => {
   }
 };
 
-const PRINT = malValue => pr_str(malValue);
+const PRINT = malValue => pr_str(malValue, true);
 
 const env = new Env();
 for (key in ns) {
   env.set(new MalSymbol(key), ns[key]);
 }
+env.set(new MalSymbol('eval'), (ast) => EVAL(ast, env));
+env.set(new MalSymbol("*ARGV*"), new MalList([]));
 
 const rep = str => PRINT(EVAL(READ(str), env));
 
-const not = rep('(def! not (fn* (a) (if a false true)))');
+rep('(def! not (fn* (a) (if a false true)))');
+rep('(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))');
 
 const repl = () =>
   rl.question('user> ', line => {
@@ -166,4 +175,14 @@ const repl = () =>
     repl();
   });
 
-repl();
+if (process.argv.length >= 3) {
+  const args = process.argv.slice(3);
+  const malArgs = new MalList(args.map(x => new MalString(x)));
+  env.set(new MalSymbol("*ARGV*"), malArgs);
+  const code = "(load-file \"" + process.argv[2] + "\")";
+  rep(code);
+  rl.close();
+} else {
+  repl();
+}
+
