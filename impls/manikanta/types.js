@@ -29,9 +29,13 @@ class MalSymbol extends Malval {
   }
 }
 
-class MalList extends Malval {
+class MalSeq extends Malval {
   constructor(value) {
     super(value);
+  }
+
+  beginsWith(symbol) {
+    return this.value.length > 0 && this.value[0].value === symbol;
   }
 
   isEmpty() {
@@ -40,14 +44,32 @@ class MalList extends Malval {
 
   count() {
     return this.value.length;
-  }
-
-  pr_str(readable = false) {
-    return '(' + this.value.map(x => pr_str(x)).join(' ') + ')';
   }
 }
 
-class MalVector extends Malval {
+class MalList extends MalSeq {
+  constructor(value) {
+    super(value);
+  }
+
+  beginsWith(symbol) {
+    return this.value.length > 0 && this.value[0].value === symbol;
+  }
+
+  isEmpty() {
+    return this.value.length === 0;
+  }
+
+  count() {
+    return this.value.length;
+  }
+
+  pr_str(readable = false) {
+    return '(' + this.value.map(x => pr_str(x, readable)).join(' ') + ')';
+  }
+}
+
+class MalVector extends MalSeq {
   constructor(value) {
     super(value);
   }
@@ -61,7 +83,7 @@ class MalVector extends Malval {
   }
 
   pr_str(readable = false) {
-    return '[' + this.value.map(x => pr_str(x)).join(' ') + ']';
+    return '[' + this.value.map(x => pr_str(x, readable)).join(' ') + ']';
   }
 }
 
@@ -143,4 +165,4 @@ class MalAtom extends Malval {
 }
 
 
-module.exports = { Malval, MalSymbol, MalList, MalVector, Malnil, MalString, MalFunction, pr_str, createMalString, MalAtom };
+module.exports = { Malval, MalSymbol, MalList, MalVector, Malnil, MalString, MalFunction, pr_str, createMalString, MalAtom, MalSeq };

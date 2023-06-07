@@ -14,7 +14,6 @@ const ns = {
     if (a instanceof MalList || a instanceof MalVector) {
       return deepEqual(a, args[0]);
     }
-
     const areNills = args.every(x => x instanceof Malnil);
     return areNills || a === args[0];
   }),
@@ -53,7 +52,8 @@ const ns = {
   'reset!': (atom, val) => atom.reset(val),
   'swap!': (atom, func, ...args) => atom.swap(func, args),
   'cons': (value, list) => new MalList([value, ...list.value]),
-  'concat': (list1, list2) => new MalList([...list1.value, ...list2.value])
+  'concat': (list1, list2) => new MalList([...list1.value, ...list2.value]),
+  'vec': (args) => new MalVector([...args.value])
 }
 
 module.exports = { ns };
